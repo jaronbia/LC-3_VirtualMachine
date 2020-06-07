@@ -44,12 +44,7 @@ class Emulator {
         uint16_t offset(const int instr) { return signExtend(instr & 0x3F, 6); }
         uint16_t pcoffset(const int instr) { return signExtend(instr & 0x1FF, 9); }
         uint16_t longpcoffset(const int instr) { return signExtend(instr & 0x7FF, 11); }
-
-        void updateFlag(uint16_t r) {
-            if(reg[r] == 0) reg[COND] = FL_ZRO;
-            else reg[COND] = (reg[r] >> 15) ? FL_NEG 
-                                            : FL_POS;
-        }
+        void updateFlag(uint16_t r);
 
     public:
         Emulator();

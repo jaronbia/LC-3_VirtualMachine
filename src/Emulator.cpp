@@ -14,7 +14,7 @@ run() {
     reg[PC] = PC_START;
     
     while(active) {
-        instr = mem_read(reg[PC]++);
+        instr = mem.read(reg[PC]++);
         op = instr >> 12;
 
         if(op == ADD)      add(instr);
@@ -49,7 +49,7 @@ ldi(const int instr)  {
     uint16_t r0 = (instr >> 9) & 0x7;                   // destination register
     uint16_t r1 = (instr >> 6) & 0x7;                   // first operand
 
-    reg[r0] = mem_read(mem_read(reg[PC] + pcoffset(instr)));
+    reg[r0] = mem.read(mem.read(reg[PC] + pcoffset(instr)));
     updateFlag(r0);
 }
 
@@ -93,7 +93,7 @@ void Emulator::
 load(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;                   // destination register
 
-    reg[r0] = mem_read(reg[PC] + pcoffset(instr));
+    reg[r0] = mem.read(reg[PC] + pcoffset(instr));
     updateFlag(r0);
 }
 
@@ -102,7 +102,7 @@ loadr(const int instr) {                                // load register
     uint16_t r0 = (instr >> 9) & 0x7;                   // destination register
     uint16_t r1 = (instr >> 6) & 0x7;                   // first operand
 
-    reg[r0] = mem_read(reg[r1] + offset(instr));
+    reg[r0] = mem.read(reg[r1] + offset(instr));
     updateFlag(r0);
 }   
 
@@ -117,20 +117,20 @@ loadea(const int instr) {                               // load effective addres
 void Emulator:: 
 store(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;
-    mem_write(reg[PC] + pcoffset(instr), reg[r0]);
+    mem.write(reg[PC] + pcoffset(instr), reg[r0]);
 }
 
 void Emulator:: 
 storei(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;
-    mem_write(mem_read(reg[PC] + pcoffset(instr), reg[r0]));
+    mem.write(mem.read(reg[PC] + pcoffset(instr)), reg[r0]);
 }
 
 void Emulator:: 
 storer(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;
     uint16_t r1 = (instr >> 6) & 0x7;  
-    mem_write(reg[r1] + offset(instr), reg[r0]);
+    mem.write(reg[r1] + offset(instr), reg[r0]);
 }
 
 void Emulator::

@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <cstdint>
-//#include "Buffer.hpp"
+#include "Buffer.hpp"
 #define LC3_REGISTER_COUNT 11
 #define PC_START 0x3000
 
@@ -21,8 +21,8 @@ enum CondFlags {  FL_POS = 1 << 0, /* P */
 
 class Emulator {
     private:
-        uint16_t memory[UINT16_MAX];             // 65536 locations 
         uint16_t reg[LC3_REGISTER_COUNT];
+        Buffer mem;
 
         void add(const int instr);
         void ldi(const int instr);               // load indirectly

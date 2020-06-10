@@ -1,5 +1,7 @@
 #pragma once
+#include <iostream>
 #include <cstdint>
+//#include "Buffer.hpp"
 #define LC3_REGISTER_COUNT 11
 #define PC_START 0x3000
 
@@ -35,6 +37,9 @@ class Emulator {
         void load(const int instr);
         void loadr(const int instr);             // load register  
         void loadea(const int instr);            // load effective address
+        void store(const int instr);
+        void storei(const int instr);
+        void storer(const int instr);
 
         bool isImmMode(const int instr) { return (instr >> 5) & 0x1; }  // is it in immediate mode?
 

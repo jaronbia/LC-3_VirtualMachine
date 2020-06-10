@@ -1,5 +1,9 @@
 #include "Emulator.hpp"
 
+/********************************
+ *  Virtual Machine Functions *
+*********************************/
+
 void Emulator::
 run() {
     bool active = true;
@@ -21,6 +25,9 @@ run() {
         else if(op == LD)  load(instr);
         else if(op == LDR) loadr(instr);
         else if(op == LEA) loadea(instr);
+        else if(op == ST)  store(instr);
+        else if(op == STI) storei(instr);
+        else if(op == STR) storer(instr);
         else abort(); //cerr << "Error: Invalid command encountered" << '\n';
     }
     // shutdown
@@ -91,12 +98,12 @@ load(const int instr) {
 }
 
 void Emulator:: 
-    loadr(const int instr) {                            // load register
-        uint16_t r0 = (instr >> 9) & 0x7;               // destination register
-        uint16_t r1 = (instr >> 6) & 0x7;               // first operand
+loadr(const int instr) {                                // load register
+    uint16_t r0 = (instr >> 9) & 0x7;                   // destination register
+    uint16_t r1 = (instr >> 6) & 0x7;                   // first operand
 
-        reg[r0] = mem_read(reg[r1] + offset(instr));
-        updateFlag(r0);
+    reg[r0] = mem_read(reg[r1] + offset(instr));
+    updateFlag(r0);
 }   
 
 void Emulator:: 
@@ -105,6 +112,25 @@ loadea(const int instr) {                               // load effective addres
     
     reg[r0] = reg[PC] + pcoffset(instr);
     updateFlag(r0);
+}
+
+void Emulator:: 
+store(const int instr) {
+    uint16_t r0 = (instr >> 9) & 0x7;
+    mem_write(reg[PC] + pcoffset(instr), reg[r0]);
+}
+
+void Emulator:: 
+storei(const int instr) {
+    uint16_t r0 = (instr >> 9) & 0x7;
+    mem_write(mem_read(reg[PC] + pcoffset(instr), reg[r0]));
+}
+
+void Emulator:: 
+storer(const int instr) {
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t r1 = (instr >> 6) & 0x7;  
+    mem_write(reg[r1] + offset(instr), reg[r0]);
 }
 
 void Emulator::

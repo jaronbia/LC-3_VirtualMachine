@@ -7,17 +7,27 @@
 
 using namespace std;
 
-enum Register { R0 = 0, R1, R2, R3, R4, 
-                R5, R6, R7, PC, COND, COUNT };
+/********************************
+ *     Virtual Machine Class    *
+*********************************/
 
-enum OpCode { BR = 0, ADD, LD, ST, 
-              JSR, AND, LDR, STR, 
-              RTI, NOT, LDI, STI,
-              JMP, RES, LEA, TRAP };
+enum Register { 
+    R0 = 0, R1, R2, R3, R4, 
+    R5, R6, R7, PC, COND, COUNT 
+};
+
+enum OpCodes { 
+    BR = 0, ADD, LD, ST, 
+    JSR, AND, LDR, STR, 
+    RTI, NOT, LDI, STI,
+    JMP, RES, LEA, TRAP 
+};
               
-enum CondFlags {  FL_POS = 1 << 0, /* P */
-                  FL_ZRO = 1 << 1, /* Z */
-                  FL_NEG = 1 << 2, /* N */ };
+enum CondFlags {  
+    FL_POS = 1 << 0, /* P */
+    FL_ZRO = 1 << 1, /* Z */
+    FL_NEG = 1 << 2, /* N */ 
+};
 
 class Emulator {
     private:
@@ -41,18 +51,52 @@ class Emulator {
         void storei(const int instr);
         void storer(const int instr);
 
-        bool isImmMode(const int instr) { return (instr >> 5) & 0x1; }  // is it in immediate mode?
+        const bool isImmMode(const int instr) { return (instr >> 5) & 0x1; }  // is it in immediate mode?
 
-        uint16_t signExtend(const int16_t x, const int bit_count) {
+        const uint16_t signExtend(const int16_t x, const int bit_count) {
             return (x >> (bit_count - 1) & 1) ? x | (0xFFFF << bit_count) : x;
         }
-        uint16_t offset(const int instr) { return signExtend(instr & 0x3F, 6); }
-        uint16_t pcoffset(const int instr) { return signExtend(instr & 0x1FF, 9); }
-        uint16_t longpcoffset(const int instr) { return signExtend(instr & 0x7FF, 11); }
-        void updateFlag(uint16_t r);
+        const uint16_t offset(const int instr) { return signExtend(instr & 0x3F, 6); }
+        const uint16_t pcoffset(const int instr) { return signExtend(instr & 0x1FF, 9); }
+        const uint16_t longpcoffset(const int instr) { return signExtend(instr & 0x7FF, 11); }
+        void updateFlag(const uint16_t r);
 
     public:
         Emulator();
         ~Emulator() = default;
         void run();
+};
+
+/********************************
+ *       Trap Helper Class      *
+*********************************/
+
+enum TrapCodes {
+    GETC = 0x20,
+    OUT = 0x21, 
+    PUTS = 0x22,
+    IN = 0x23,
+    PUTSP = 0x24,
+    HALT = 0x25
+};
+
+class Trap {
+    private:
+        Buffer* mem;
+        uint16_t* reg;
+
+        void getc() { *reg = (uint16_t) getchar(); }
+        void out() { 
+            putc((char) *reg, stdout);
+            fflush(stdout);
+        }
+        void trputs();
+        void in();
+        void putsp();
+        bool halt(bool active);
+    
+    public:
+        Trap(Buffer* m, uint16_t* r) : mem(m), reg(r) { }
+        ~Trap() = default;
+        void execute(const uint16_t instr, bool active);
 };

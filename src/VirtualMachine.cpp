@@ -1,6 +1,30 @@
 #include "VirtualMachine.hpp"
 
 /********************************
+ *     LauncherLC3 Functions    *
+*********************************/
+
+VirtualMachine LauncherLC3::vm = VirtualMachine();
+
+void LauncherLC3::
+execute(int count, char* img[]) {
+    if (count < 2) { /* show usage string */
+        printf("lc3 [image-file1] ...\n");
+        exit(2);
+    }
+
+    for(int j = 1; j < count; ++j) {
+        if(vm.read(img[j])) {
+            printf("failed to load image: %s\n", img[j]);
+            exit(1);
+        }
+    }
+
+    signal(SIGINT, LauncherLC3::handleInterr);
+    vm.run();
+}
+
+/********************************
  *   Virtual Machine Functions  *
 *********************************/
 
@@ -9,10 +33,8 @@ run() {
     bool active = true;
     uint16_t instr, op;
     Trap tr(mem, &reg[R0]);
-    // load args
 
-    // setup
-    mem->disableInput();
+    mem->disableInput();    // setup
 
     reg[PC] = PC_START;
     
@@ -34,8 +56,8 @@ run() {
         else if(op == TRAP) tr.execute(instr, active);
         else abort();
     }
-    // shutdown
-    mem->restoreInput();
+
+    mem->restoreInput();     // shutdown
 }
 
 void VirtualMachine::

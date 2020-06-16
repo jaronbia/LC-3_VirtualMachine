@@ -63,7 +63,9 @@ class VirtualMachine {
         const uint16_t pcoffset(const int instr) { return signExtend(instr & 0x1FF, 9); }
         const uint16_t longpcoffset(const int instr) { return signExtend(instr & 0x7FF, 11); }
         void           updateFlag(const uint16_t r);
-        void           interrupt(int signal) { mem->interrupt(signal); }
+
+        void       interrupt(int signal) { mem->interrupt(signal); }
+        const bool read(char* path) { return mem->readPath(path); }
 
     public:
         VirtualMachine() { mem = static_cast<Buffer*>(new UnixBuffer()); }
@@ -112,13 +114,10 @@ class Trap {
 class LauncherLC3 {
     private:
         static VirtualMachine vm;
+        static void handleInterr(int signal) { LauncherLC3::vm.interrupt(signal); }
 
     public:
         LauncherLC3() = default;
         ~LauncherLC3() = default;
-        void run() {
-            signal(SIGINT, LauncherLC3::handleInterr);
-            LauncherLC3::vm.run();
-        }
-        static void handleInterr(int signal) { LauncherLC3::vm.interrupt(signal); }
+        void execute(int count, char* img[]);
 };

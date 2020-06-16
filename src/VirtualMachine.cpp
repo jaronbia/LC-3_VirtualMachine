@@ -21,7 +21,7 @@ execute(int count, char* img[]) {
     }
 
     signal(SIGINT, LauncherLC3::handleInterr);
-    vm.run();
+    LauncherLC3::vm.run();
 }
 
 /********************************

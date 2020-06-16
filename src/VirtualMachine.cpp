@@ -8,11 +8,10 @@ void VirtualMachine::
 run() {
     bool active = true;
     uint16_t instr, op;
-    Trap tr(&mem, &reg[R0]);
+    Trap tr(mem, &reg[R0]);
     // load args
 
     // setup
-    signal(SIGINT, mem->interrupt());
     mem->disableInput();
 
     reg[PC] = PC_START;
@@ -36,7 +35,7 @@ run() {
         else abort();
     }
     // shutdown
-    mem->restoreInput()
+    mem->restoreInput();
 }
 
 void VirtualMachine::
@@ -151,7 +150,7 @@ updateFlag(const uint16_t r) {
 *********************************/
 
 void Trap:: 
-execute(const uint16_t instr, const bool& active) {
+execute(const uint16_t instr, bool& active) {
     uint16_t tr = instr & 0xFF;
 
     if(tr == GETC)       getc();
@@ -160,7 +159,6 @@ execute(const uint16_t instr, const bool& active) {
     else if(tr == IN)    in();
     else if(tr == PUTSP) putsp();
     else if(tr == HALT)  halt(active);
-    //else
 }
 
  /* one char per word */

@@ -7,7 +7,7 @@
 const uint16_t Buffer:: 
 read(const uint16_t addr) {
     if (addr == MR_KBSR) {
-        if (check_key()) {
+        if (checkKey()) {
             memory[MR_KBSR] = (1 << 15);
             memory[MR_KBDR] = getchar();
         }

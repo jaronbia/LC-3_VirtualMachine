@@ -21,8 +21,9 @@ disableInput() {
 }
 
 void UnixBuffer:: 
-interrupt() {
+interrupt(int signal) {
+    char x = '\n';
     restoreInput();
-    cout << '\n';
+    printf("%s", &x);
     exit(-2);
 }

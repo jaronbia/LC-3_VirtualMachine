@@ -29,7 +29,10 @@ enum CondFlags {
     FL_NEG = 1 << 2, /* N */ 
 };
 
+class LauncherLC3;
+
 class VirtualMachine {
+    friend class LauncherLC3;
     private:
         uint16_t reg[LC3_REGISTER_COUNT];
         Buffer* mem;
@@ -60,9 +63,10 @@ class VirtualMachine {
         const uint16_t pcoffset(const int instr) { return signExtend(instr & 0x1FF, 9); }
         const uint16_t longpcoffset(const int instr) { return signExtend(instr & 0x7FF, 11); }
         void           updateFlag(const uint16_t r);
+        void           interrupt(int signal) { mem->interrupt(signal); }
 
     public:
-        VirtualMachine() { mem = static_cast<Buffer>(new UnixBuffer()); }
+        VirtualMachine() { mem = static_cast<Buffer*>(new UnixBuffer()); }
         ~VirtualMachine() { delete mem; }
         void run();
 };
@@ -98,5 +102,23 @@ class Trap {
     public:
         Trap(Buffer* m, uint16_t* r) : mem(m), reg(r) { }
         ~Trap() = default;
-        void execute(const uint16_t instr, bool active);
+        void execute(const uint16_t instr, bool& active);
+};
+
+/********************************
+ *      LC3 Launcher Class      *
+*********************************/
+
+class LauncherLC3 {
+    private:
+        static VirtualMachine vm;
+
+    public:
+        LauncherLC3() = default;
+        ~LauncherLC3() = default;
+        void run() {
+            signal(SIGINT, LauncherLC3::handleInterr);
+            LauncherLC3::vm.run();
+        }
+        static void handleInterr(int signal) { LauncherLC3::vm.interrupt(signal); }
 };

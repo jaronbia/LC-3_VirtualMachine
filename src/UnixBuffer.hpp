@@ -23,5 +23,5 @@ class UnixBuffer : public Buffer {
         virtual void           restoreInput() override {      // restore input buffering
             tcsetattr(STDIN_FILENO, TCSANOW, &original_tio);
         }
-        virtual void           interrupt() override;          // handle interrupt
+        virtual void           interrupt(int signal) override;          // handle interrupt
 };

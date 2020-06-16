@@ -34,23 +34,6 @@ readImg(FILE* file) {
     for( ; read > 0; --read, ++p) *p = swap16(*p);
 }
 
-const void Buffer:: 
-putsp() {
-    /* one char per byte (two bytes per word)
-       here we need to swap back to
-       big endian format */
-    uint16_t* c = memory + reg[R_R0];
-    while (*c)
-    {
-        char char1 = (*c) & 0xFF;
-        putc(char1, stdout);
-        char char2 = (*c) >> 8;
-        if (char2) putc(char2, stdout);
-        ++c;
-    }
-    fflush(stdout);
-}
-
 const bool Buffer:: 
 readPath(const char* imgPath) {
     FILE* file = fopen(imgPath, "rb");

@@ -14,7 +14,7 @@ execute(int count, char* img[]) {
     }
 
     for(int j = 1; j < count; ++j) {
-        if(vm.read(img[j])) {
+        if(!vm.read(img[j])) {
             printf("failed to load image: %s\n", img[j]);
             exit(1);
         }
@@ -43,7 +43,7 @@ run() {
         op = instr >> 12;
 
         if(op == ADD)       add(instr);
-        else if(op == LDI)  ldi(instr);
+        else if(op == LDI)  ldi(instr); 
         else if(op == BR)   branch(instr);
         else if(op == JMP)  jump(instr);
         else if(op == JSR)  jsr(instr);
@@ -188,7 +188,7 @@ void Trap::
 trputs() {
     for (uint16_t* c = mem->loc(reg); *c; ++c) 
         putc((char)*c, stdout);
-    fflush(stdout);
+    fflush(stdout);  
 }
 
 void Trap::
@@ -214,7 +214,6 @@ putsp() {
         ch = (*c) >> 8;
         if(ch) putc(ch, stdout);
     }
-
     fflush(stdout);
 }
 

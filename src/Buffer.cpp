@@ -31,7 +31,12 @@ readImg(FILE* file) {
     uint16_t* p = memory + origin;
     size_t read = fread(p, sizeof(uint16_t), max_read, file);
 
-    for( ; read > 0; --read, ++p) *p = swap16(*p);
+    //for( ; read > 0; --read, ++p) *p = swap16(*p);
+    /* swap to little endian */
+    while (read-- > 0) {
+        *p = swap16(*p);
+        ++p;
+    }
 }
 
 const bool Buffer:: 

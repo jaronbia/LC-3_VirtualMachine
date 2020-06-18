@@ -44,13 +44,6 @@ run() {
     mem->disableInput();    // setup
 
     reg[PC] = PC_START;
-
-    enum OpCodes { 
-    BR = 0, ADD, LD, ST, 
-    JSR, AND, LDR, STR, 
-    RTI, NOT, LDI, STI,
-    JMP, RES, LEA, TRAP 
-};
     
     while(active) {
         instr = mem->read(reg[PC]++);

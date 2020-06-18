@@ -94,13 +94,13 @@ class Trap {
 
         void getc() { *reg = (uint16_t) getchar(); }
         void out() { 
-            putc((char) *reg, stdout);
+            putc((char)*reg, stdout);
             fflush(stdout);
         }
         void trputs();
         void in();
-        void putsp();
-        void halt(bool active);
+        void putsp();  // one char per byte (two bytes per word), swap back to big endian
+        void halt(bool& active);
     
     public:
         Trap(Buffer* m, uint16_t* r) : mem(m), reg(r) { }

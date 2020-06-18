@@ -56,8 +56,6 @@ run() {
         instr = mem->read(reg[PC]++);
         op = instr >> 12;
 
-        //cout << "opcode: " << ops[op] << '\n';
-
         if(op == ADD)       add(instr);
         else if(op == LDI)  ldi(instr); 
         else if(op == BR)   branch(instr);

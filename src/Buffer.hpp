@@ -20,7 +20,7 @@ class Buffer {
 
     public:
         Buffer() = default;
-        virtual ~Buffer() = default; /* MAY NEED TO BECOME VIRTUAL */
+        virtual ~Buffer() = default;
         void           write(const uint16_t addr, const uint16_t val) { memory[addr] = val; }
         const uint16_t read(const uint16_t addr);
         void           readImg(FILE* file);

@@ -1,7 +1,8 @@
 #pragma once
 #include <iostream>
+#include <cstdio>
 #include <cstdint>
-#include "Buffer.hpp"
+#include "UnixBuffer.hpp"
 #define LC3_REGISTER_COUNT 11
 #define PC_START 0x3000
 
@@ -29,10 +30,13 @@ enum CondFlags {
     FL_NEG = 1 << 2, /* N */ 
 };
 
-class Emulator {
+class LauncherLC3;
+
+class VirtualMachine {
+    friend class LauncherLC3;
     private:
         uint16_t reg[LC3_REGISTER_COUNT];
-        Buffer mem;
+        Buffer* mem;
 
         void add(const int instr);
         void ldi(const int instr);               // load indirectly
@@ -59,11 +63,14 @@ class Emulator {
         const uint16_t offset(const int instr) { return signExtend(instr & 0x3F, 6); }
         const uint16_t pcoffset(const int instr) { return signExtend(instr & 0x1FF, 9); }
         const uint16_t longpcoffset(const int instr) { return signExtend(instr & 0x7FF, 11); }
-        void updateFlag(const uint16_t r);
+        void           updateFlag(const uint16_t r);
+
+        void       interrupt(int signal) { mem->interrupt(signal); }
+        const bool read(char* path) { return mem->readPath(path); }
 
     public:
-        Emulator();
-        ~Emulator() = default;
+        VirtualMachine() { mem = static_cast<Buffer*>(new UnixBuffer()); }
+        ~VirtualMachine() { delete mem; }
         void run();
 };
 
@@ -93,10 +100,25 @@ class Trap {
         void trputs();
         void in();
         void putsp();
-        bool halt(bool active);
+        void halt(bool active);
     
     public:
         Trap(Buffer* m, uint16_t* r) : mem(m), reg(r) { }
         ~Trap() = default;
-        void execute(const uint16_t instr, bool active);
+        void execute(const uint16_t instr, bool& active);
+};
+
+/********************************
+ *      LC3 Launcher Class      *
+*********************************/
+
+class LauncherLC3 {
+    private:
+        static VirtualMachine vm;
+        static void handleInterr(int signal) { LauncherLC3::vm.interrupt(signal); }
+
+    public:
+        LauncherLC3() = default;
+        ~LauncherLC3() = default;
+        void execute(int count, char* img[]);
 };

@@ -1,25 +1,49 @@
-#include "Emulator.hpp"
+#include "VirtualMachine.hpp"
+
+/********************************
+ *     LauncherLC3 Functions    *
+*********************************/
+
+VirtualMachine LauncherLC3::vm = VirtualMachine();
+
+void LauncherLC3::
+execute(int count, char* img[]) {
+    if (count < 2) { /* show usage string */
+        printf("lc3 [image-file1] ...\n");
+        exit(2);
+    }
+
+    for(int j = 1; j < count; ++j) {
+        if(!vm.read(img[j])) {
+            printf("failed to load image: %s\n", img[j]);
+            exit(1);
+        }
+    }
+
+    signal(SIGINT, LauncherLC3::handleInterr);
+    LauncherLC3::vm.run();
+}
 
 /********************************
  *   Virtual Machine Functions  *
 *********************************/
 
-void Emulator::
+void VirtualMachine::
 run() {
     bool active = true;
     uint16_t instr, op;
-    Trap tr(&mem, &reg[R0]);
-    // load args
-    // setup
+    Trap tr(mem, &reg[R0]);
+
+    mem->disableInput();    // setup
 
     reg[PC] = PC_START;
     
     while(active) {
-        instr = mem.read(reg[PC]++);
+        instr = mem->read(reg[PC]++);
         op = instr >> 12;
 
         if(op == ADD)       add(instr);
-        else if(op == LDI)  ldi(instr);
+        else if(op == LDI)  ldi(instr); 
         else if(op == BR)   branch(instr);
         else if(op == JMP)  jump(instr);
         else if(op == JSR)  jsr(instr);
@@ -30,12 +54,13 @@ run() {
         else if(op == STI)  storei(instr);
         else if(op == STR)  storer(instr);
         else if(op == TRAP) tr.execute(instr, active);
-        else abort(); //cerr << "Error: Invalid command encountered" << '\n';
+        else abort();
     }
-    // shutdown
+
+    mem->restoreInput();     // shutdown
 }
 
-void Emulator::
+void VirtualMachine::
 add(const int instr)  {
     uint16_t r0 = (instr >> 9) & 0x7;                             // destination register
     uint16_t r1 = (instr >> 6) & 0x7;                             // first operand
@@ -46,16 +71,16 @@ add(const int instr)  {
     updateFlag(r0);
 }
 
-void Emulator::
+void VirtualMachine::
 ldi(const int instr)  {
     uint16_t r0 = (instr >> 9) & 0x7;                   // destination register
     uint16_t r1 = (instr >> 6) & 0x7;                   // first operand
 
-    reg[r0] = mem.read(mem.read(reg[PC] + pcoffset(instr)));
+    reg[r0] = mem->read(mem->read(reg[PC] + pcoffset(instr)));
     updateFlag(r0);
 }
 
-void Emulator::
+void VirtualMachine::
 band(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;                              // destination register
     uint16_t r1 = (instr >> 6) & 0x7;                              // first operand
@@ -66,7 +91,7 @@ band(const int instr) {
     updateFlag(r0);
 }
 
-void Emulator:: 
+void VirtualMachine:: 
 bnot(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;                    // destination register
     uint16_t r1 = (instr >> 6) & 0x7;                    // first operand
@@ -75,13 +100,13 @@ bnot(const int instr) {
     updateFlag(r0);
 }
 
-void Emulator::
+void VirtualMachine::
 branch(const int instr) {
     uint16_t condFlag = (instr >> 9) & 0x7;
     if(condFlag & reg[COND]) reg[PC] += pcoffset(instr);   
 }
 
-void Emulator:: 
+void VirtualMachine:: 
 jsr(const int instr) {
     uint16_t r1 = (instr >> 6) & 0x7;                   // first operand
     uint16_t longFlag = (instr >> 11) & 1;
@@ -91,24 +116,24 @@ jsr(const int instr) {
                        : reg[r1];
 }
 
-void Emulator::
+void VirtualMachine::
 load(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;                   // destination register
 
-    reg[r0] = mem.read(reg[PC] + pcoffset(instr));
+    reg[r0] = mem->read(reg[PC] + pcoffset(instr));
     updateFlag(r0);
 }
 
-void Emulator:: 
+void VirtualMachine:: 
 loadr(const int instr) {                                // load register
     uint16_t r0 = (instr >> 9) & 0x7;                   // destination register
     uint16_t r1 = (instr >> 6) & 0x7;                   // first operand
 
-    reg[r0] = mem.read(reg[r1] + offset(instr));
+    reg[r0] = mem->read(reg[r1] + offset(instr));
     updateFlag(r0);
 }   
 
-void Emulator:: 
+void VirtualMachine:: 
 loadea(const int instr) {                               // load effective address
     uint16_t r0 = (instr >> 9) & 0x7;                   // destination register
     
@@ -116,26 +141,26 @@ loadea(const int instr) {                               // load effective addres
     updateFlag(r0);
 }
 
-void Emulator:: 
+void VirtualMachine:: 
 store(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;
-    mem.write(reg[PC] + pcoffset(instr), reg[r0]);
+    mem->write(reg[PC] + pcoffset(instr), reg[r0]);
 }
 
-void Emulator:: 
+void VirtualMachine:: 
 storei(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;
-    mem.write(mem.read(reg[PC] + pcoffset(instr)), reg[r0]);
+    mem->write(mem->read(reg[PC] + pcoffset(instr)), reg[r0]);
 }
 
-void Emulator:: 
+void VirtualMachine:: 
 storer(const int instr) {
     uint16_t r0 = (instr >> 9) & 0x7;
     uint16_t r1 = (instr >> 6) & 0x7;  
-    mem.write(reg[r1] + offset(instr), reg[r0]);
+    mem->write(reg[r1] + offset(instr), reg[r0]);
 }
 
-void Emulator::
+void VirtualMachine::
 updateFlag(const uint16_t r) {
     if(reg[r] == 0) reg[COND] = FL_ZRO;
     else reg[COND] = (reg[r] >> 15) ? FL_NEG 
@@ -147,7 +172,7 @@ updateFlag(const uint16_t r) {
 *********************************/
 
 void Trap:: 
-execute(const uint16_t instr, const bool& active) {
+execute(const uint16_t instr, bool& active) {
     uint16_t tr = instr & 0xFF;
 
     if(tr == GETC)       getc();
@@ -156,7 +181,6 @@ execute(const uint16_t instr, const bool& active) {
     else if(tr == IN)    in();
     else if(tr == PUTSP) putsp();
     else if(tr == HALT)  halt(active);
-    //else
 }
 
  /* one char per word */
@@ -164,12 +188,12 @@ void Trap::
 trputs() {
     for (uint16_t* c = mem->loc(reg); *c; ++c) 
         putc((char)*c, stdout);
-    fflush(stdout);
+    fflush(stdout);  
 }
 
 void Trap::
 in() {
-    cout << "Enter a character: ";
+    printf("Enter a character: ");
     char c = getchar();
     putc(c, stdout);
     *reg = (uint16_t) c;
@@ -190,7 +214,6 @@ putsp() {
         ch = (*c) >> 8;
         if(ch) putc(ch, stdout);
     }
-
     fflush(stdout);
 }
 

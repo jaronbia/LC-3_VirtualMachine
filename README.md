@@ -7,7 +7,7 @@ This is a full C++ conversion from the original C code found in the article, usi
 
 # Compile & Run
 1) c++ -std=c++17 -o main *.cpp
-2) ./main <name>.obj (<name> can either be 2048 or rogue)
+2) ./main 2048.obj (or any name.obj)
 
 # Future Plans
 

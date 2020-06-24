@@ -5,6 +5,10 @@ https://github.com/justinmeiners/lc3-vm
 
 This is a full C++ conversion from the original C code found in the article, using object oriented design. 
 
+# Compile & Run
+1) c++ -std=c++17 -o main *.cpp
+2) ./main <name>.obj (<name> can either be 2048 or rogue)
+
 # Future Plans
 
 - I plan to change the IO handling from the C libraries to the

@@ -9,7 +9,7 @@ This is a full C++ conversion from the original C code found in the article, usi
 
 You can run any appropriate .obj file. Two have been provided (rogue.obj and 2048.obj).
 
-1) cmake ..
+1) cmake .
 2) make
 3) ./lc3 *.obj 
 
